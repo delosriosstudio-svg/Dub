@@ -1,0 +1,1083 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="theme-color" content="#2d1a0e">
+<title>De Un Bocado</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --cream: #fdf6ee;
+  --warm-white: #faf3e8;
+  --caramel: #c8823a;
+  --caramel-dark: #9e6025;
+  --chocolate: #2d1a0e;
+  --chocolate-mid: #5c3317;
+  --blush: #f2c9a0;
+  --blush-light: #faebd7;
+  --sage: #7a9e7e;
+  --sage-light: #d4e8d5;
+  --dusty-rose: #d4866a;
+  --error: #c0392b;
+  --font-display: 'Playfair Display', serif;
+  --font-body: 'DM Sans', sans-serif;
+  --radius: 16px;
+  --radius-sm: 10px;
+  --shadow: 0 4px 24px rgba(45,26,14,0.10);
+  --shadow-sm: 0 2px 8px rgba(45,26,14,0.08);
+  --transition: 0.2s cubic-bezier(.4,0,.2,1);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+body { background: var(--cream); color: var(--chocolate); font-family: var(--font-body); font-size: 15px; line-height: 1.5; min-height: 100vh; }
+
+/* NAV */
+.app-header {
+  background: var(--chocolate);
+  color: var(--blush-light);
+  padding: 16px 20px 14px;
+  position: sticky; top: 0; z-index: 100;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.app-header h1 { font-family: var(--font-display); font-size: 22px; font-weight: 700; letter-spacing: 0.3px; color: var(--blush); }
+.app-header .subtitle { font-size: 11px; color: rgba(242,201,160,0.6); letter-spacing: 1px; text-transform: uppercase; margin-top: 1px; }
+.header-badge {
+  background: var(--caramel); color: white;
+  border-radius: 20px; padding: 4px 12px; font-size: 12px; font-weight: 500;
+}
+
+/* TABS */
+.tabs {
+  display: flex; background: var(--chocolate-mid);
+  overflow-x: auto; scrollbar-width: none;
+}
+.tabs::-webkit-scrollbar { display: none; }
+.tab {
+  flex: 1; min-width: 80px; padding: 12px 8px; text-align: center;
+  font-size: 12px; font-family: var(--font-body); font-weight: 500;
+  color: rgba(250,227,183,0.55); cursor: pointer; border: none;
+  background: none; letter-spacing: 0.5px; text-transform: uppercase;
+  border-bottom: 2px solid transparent; transition: var(--transition);
+  white-space: nowrap;
+}
+.tab.active { color: var(--blush); border-bottom-color: var(--caramel); }
+
+/* VIEWS */
+.view { display: none; padding: 20px; }
+.view.active { display: block; }
+
+/* CARDS */
+.card {
+  background: white; border-radius: var(--radius);
+  box-shadow: var(--shadow-sm); padding: 18px;
+  margin-bottom: 14px; border: 1px solid rgba(200,130,58,0.12);
+}
+.card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; }
+.card-title { font-family: var(--font-display); font-size: 17px; font-weight: 700; color: var(--chocolate); }
+.card-sub { font-size: 12px; color: var(--chocolate-mid); margin-top: 2px; }
+
+/* BADGES */
+.badge {
+  display: inline-block; padding: 3px 10px; border-radius: 20px;
+  font-size: 11px; font-weight: 500; letter-spacing: 0.3px;
+}
+.badge-pending { background: #fff4e0; color: #9e6025; }
+.badge-done    { background: var(--sage-light); color: #3a6e3e; }
+.badge-partial { background: #fde8e0; color: #b04a2a; }
+.badge-paid    { background: #e8f8e8; color: #2a7a2e; }
+
+/* PILL GROUP */
+.pill-group { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 14px; }
+.pill {
+  padding: 6px 14px; border-radius: 20px; border: 1.5px solid var(--blush);
+  background: transparent; color: var(--chocolate-mid); font-size: 13px;
+  font-family: var(--font-body); cursor: pointer; transition: var(--transition);
+}
+.pill.active, .pill:active { background: var(--caramel); border-color: var(--caramel); color: white; }
+
+/* FORMS */
+.field { margin-bottom: 16px; }
+.label { font-size: 12px; font-weight: 500; color: var(--chocolate-mid); letter-spacing: 0.5px; text-transform: uppercase; margin-bottom: 6px; display: block; }
+.input, .textarea, .select {
+  width: 100%; padding: 12px 14px; border-radius: var(--radius-sm);
+  border: 1.5px solid rgba(200,130,58,0.25); background: var(--warm-white);
+  font-family: var(--font-body); font-size: 15px; color: var(--chocolate);
+  transition: var(--transition); outline: none;
+}
+.input:focus, .textarea:focus, .select:focus { border-color: var(--caramel); background: white; }
+.textarea { resize: vertical; min-height: 80px; }
+.row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+/* BUTTONS */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  padding: 13px 22px; border-radius: var(--radius-sm); border: none;
+  font-family: var(--font-body); font-size: 15px; font-weight: 500;
+  cursor: pointer; transition: var(--transition); width: 100%;
+}
+.btn-primary { background: var(--caramel); color: white; }
+.btn-primary:active { background: var(--caramel-dark); }
+.btn-outline { background: transparent; color: var(--caramel); border: 1.5px solid var(--caramel); }
+.btn-ghost { background: transparent; color: var(--chocolate-mid); border: 1.5px solid rgba(200,130,58,0.25); }
+.btn-danger { background: #fde8e0; color: var(--error); border: none; }
+.btn-sm { padding: 8px 14px; font-size: 13px; width: auto; border-radius: 8px; }
+
+/* SECTION TITLE */
+.section-title {
+  font-family: var(--font-display); font-size: 20px; font-weight: 700;
+  color: var(--chocolate); margin-bottom: 16px; display: flex; align-items: center; gap: 8px;
+}
+.section-title .count {
+  font-family: var(--font-body); font-size: 13px; font-weight: 400;
+  background: var(--blush-light); color: var(--caramel-dark);
+  padding: 2px 10px; border-radius: 20px;
+}
+
+/* ORDER DETAIL ROW */
+.detail-row { display: flex; gap: 8px; margin-bottom: 6px; font-size: 14px; }
+.detail-label { color: var(--chocolate-mid); min-width: 90px; font-size: 13px; }
+.detail-val { color: var(--chocolate); font-weight: 500; }
+
+/* PHOTO PREVIEW */
+.photo-preview {
+  width: 100%; max-height: 200px; object-fit: cover;
+  border-radius: var(--radius-sm); margin-top: 8px;
+}
+.photo-upload-area {
+  border: 2px dashed rgba(200,130,58,0.3); border-radius: var(--radius-sm);
+  padding: 20px; text-align: center; cursor: pointer; color: var(--chocolate-mid);
+  font-size: 13px; background: var(--warm-white);
+}
+
+/* WEEK VIEW */
+.week-day { margin-bottom: 20px; }
+.week-day-title {
+  font-size: 13px; font-weight: 500; text-transform: uppercase; letter-spacing: 1px;
+  color: var(--caramel-dark); border-bottom: 1.5px solid var(--blush-light);
+  padding-bottom: 6px; margin-bottom: 10px;
+}
+.order-mini {
+  background: white; border-radius: var(--radius-sm); padding: 12px 14px;
+  margin-bottom: 8px; border-left: 3px solid var(--caramel);
+  box-shadow: var(--shadow-sm); cursor: pointer;
+  display: flex; justify-content: space-between; align-items: center;
+}
+.order-mini.done { border-left-color: var(--sage); }
+.order-mini-name { font-weight: 500; font-size: 14px; }
+.order-mini-desc { font-size: 12px; color: var(--chocolate-mid); margin-top: 2px; }
+
+/* PRINT AREA */
+@media print {
+  body * { visibility: hidden; }
+  #print-area, #print-area * { visibility: visible; }
+  #print-area { position: absolute; left: 0; top: 0; width: 100%; padding: 8mm; }
+  .no-print { display: none !important; }
+  #print-grid { display: grid !important; grid-template-columns: 1fr 1fr; gap: 6px !important; }
+  .print-order-card { padding: 8px !important; margin-bottom: 0 !important; }
+}
+.print-order-card {
+  border: 1px solid #ccc; border-radius: 6px; padding: 10px;
+  margin-bottom: 8px; break-inside: avoid;
+  font-family: var(--font-body); font-size: 12px;
+}
+.print-order-card .prow { display: flex; gap: 4px; font-size: 12px; margin-bottom: 2px; }
+.print-order-card .plabel { color: #666; min-width: 60px; font-size: 11px; }
+
+/* CLIENT CARD */
+.client-card {
+  background: white; border-radius: var(--radius); padding: 16px;
+  margin-bottom: 12px; box-shadow: var(--shadow-sm);
+  border: 1px solid rgba(200,130,58,0.12); cursor: pointer;
+  display: flex; justify-content: space-between; align-items: center;
+}
+.client-name { font-weight: 500; font-size: 15px; }
+.client-meta { font-size: 12px; color: var(--chocolate-mid); margin-top: 3px; }
+.debt-tag { font-size: 13px; font-weight: 500; }
+.debt-tag.has-debt { color: var(--error); }
+.debt-tag.no-debt { color: var(--sage); }
+
+/* MODAL */
+.modal-overlay {
+  display: none; position: fixed; inset: 0;
+  background: rgba(45,26,14,0.55); z-index: 200;
+  align-items: flex-end; justify-content: center;
+}
+.modal-overlay.open { display: flex; }
+.modal {
+  background: var(--cream); border-radius: var(--radius) var(--radius) 0 0;
+  padding: 24px 20px 32px; width: 100%; max-height: 90vh;
+  overflow-y: auto; animation: slideUp 0.25s ease;
+}
+@keyframes slideUp { from { transform: translateY(40px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+.modal-title { font-family: var(--font-display); font-size: 20px; font-weight: 700; margin-bottom: 20px; color: var(--chocolate); }
+.modal-close { float: right; background: none; border: none; font-size: 22px; color: var(--chocolate-mid); cursor: pointer; margin-top: -4px; }
+
+/* TOAST */
+.toast {
+  position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%);
+  background: var(--chocolate); color: var(--blush); padding: 12px 20px;
+  border-radius: 20px; font-size: 14px; z-index: 300;
+  opacity: 0; transition: opacity 0.3s; pointer-events: none;
+  white-space: nowrap;
+}
+.toast.show { opacity: 1; }
+
+/* FAB */
+.fab {
+  position: fixed; bottom: 24px; right: 20px; z-index: 150;
+  width: 56px; height: 56px; border-radius: 50%;
+  background: var(--caramel); color: white; font-size: 26px;
+  border: none; cursor: pointer; box-shadow: 0 4px 16px rgba(200,130,58,0.45);
+  display: flex; align-items: center; justify-content: center;
+  transition: var(--transition);
+}
+.fab:active { background: var(--caramel-dark); transform: scale(0.95); }
+
+/* EMPTY STATE */
+.empty { text-align: center; padding: 48px 20px; color: var(--chocolate-mid); }
+.empty-icon { font-size: 40px; margin-bottom: 12px; }
+.empty p { font-size: 14px; }
+
+/* SEARCH */
+.search-bar {
+  display: flex; gap: 8px; margin-bottom: 16px;
+}
+.search-input { flex: 1; }
+
+/* SUMMARY STRIP */
+.summary-strip {
+  display: grid; grid-template-columns: 1fr 1fr 1fr;
+  gap: 10px; margin-bottom: 20px;
+}
+.summary-card {
+  background: white; border-radius: var(--radius-sm); padding: 14px 12px;
+  text-align: center; box-shadow: var(--shadow-sm);
+  border: 1px solid rgba(200,130,58,0.1);
+}
+.summary-num { font-family: var(--font-display); font-size: 24px; font-weight: 700; color: var(--caramel); }
+.summary-label { font-size: 11px; color: var(--chocolate-mid); margin-top: 2px; text-transform: uppercase; letter-spacing: 0.5px; }
+
+.divider { height: 1px; background: rgba(200,130,58,0.12); margin: 16px 0; }
+.flex-row { display: flex; gap: 8px; }
+.flex-row .btn { flex: 1; }
+</style>
+</head>
+<body>
+
+<header class="app-header">
+  <div>
+    <h1>🎂 De Un Bocado</h1>
+    <div class="subtitle">Gestión de pedidos</div>
+  </div>
+  <div class="header-badge" id="header-count">0 pedidos</div>
+</header>
+
+<div class="tabs">
+  <button class="tab active" data-tab="semana" onclick="switchTab('semana')">Semana</button>
+  <button class="tab" data-tab="pedidos" onclick="switchTab('pedidos')">Pedidos</button>
+  <button class="tab" data-tab="clientes" onclick="switchTab('clientes')">Clientes</button>
+  <button class="tab" data-tab="imprimir" onclick="switchTab('imprimir')">Imprimir</button>
+</div>
+
+<!-- SEMANA -->
+<div class="view active" id="view-semana">
+  <div class="summary-strip" id="week-summary"></div>
+  <div id="week-content"></div>
+</div>
+
+<!-- PEDIDOS -->
+<div class="view" id="view-pedidos">
+  <div class="search-bar">
+    <input class="input search-input" type="text" placeholder="Buscar cliente, sabor…" id="search-input" oninput="renderPedidos()">
+  </div>
+  <div class="pill-group" id="period-pills" style="margin-bottom:12px">
+    <button class="pill active" data-period="all" onclick="selectPeriod(this)">Todos</button>
+    <button class="pill" data-period="today" onclick="selectPeriod(this)">Hoy</button>
+    <button class="pill" data-period="week" onclick="selectPeriod(this)">Semana</button>
+    <button class="pill" data-period="month" onclick="selectPeriod(this)">Mes</button>
+    <button class="pill" data-period="year" onclick="selectPeriod(this)">Año</button>
+    <button class="pill" data-period="custom" onclick="selectPeriod(this)">Rango</button>
+  </div>
+  <div id="custom-range" style="display:none;margin-bottom:12px" class="row2">
+    <div><label class="label">Desde</label><input type="date" class="input" id="filter-from" onchange="renderPedidos()"></div>
+    <div><label class="label">Hasta</label><input type="date" class="input" id="filter-to" onchange="renderPedidos()"></div>
+  </div>
+  <div id="pedidos-list"></div>
+</div>
+
+<!-- CLIENTES -->
+<div class="view" id="view-clientes">
+  <div id="clientes-list"></div>
+</div>
+
+<!-- IMPRIMIR -->
+<div class="view" id="view-imprimir">
+  <div class="card no-print">
+    <div class="row2" style="margin-bottom:12px">
+      <div><label class="label">Desde</label><input type="date" class="input" id="print-from"></div>
+      <div><label class="label">Hasta</label><input type="date" class="input" id="print-to"></div>
+    </div>
+    <div class="flex-row" style="margin-bottom:10px">
+      <button class="btn btn-primary" onclick="renderPrintArea()">Ver pedidos</button>
+      <button class="btn btn-outline btn-sm" style="width:auto;padding:13px 16px" onclick="window.print()" title="Imprimir">🖨️</button>
+    </div>
+  </div>
+  <div class="card no-print" style="margin-bottom:14px">
+    <div style="font-size:13px;font-weight:500;margin-bottom:10px;color:var(--chocolate-mid)">Backup entre dispositivos</div>
+    <div class="flex-row">
+      <button class="btn btn-outline" onclick="exportData()">⬇ Exportar backup</button>
+      <button class="btn btn-ghost" onclick="importData()">⬆ Importar backup</button>
+    </div>
+    <div style="font-size:12px;color:var(--chocolate-mid);margin-top:8px;line-height:1.5">Exporta desde un celular e importa en otro para transferir todos los pedidos.</div>
+  </div>
+  <div id="print-area"></div>
+</div>
+
+<!-- FAB area: + button + IA button -->
+<div class="no-print" style="position:fixed;bottom:24px;right:20px;z-index:150;display:flex;flex-direction:column;gap:10px;align-items:flex-end">
+  <button onclick="openIAModal()" style="background:var(--chocolate);color:var(--blush);border:none;border-radius:24px;padding:10px 16px;font-size:13px;font-family:var(--font-body);cursor:pointer;box-shadow:0 4px 16px rgba(45,26,14,0.25);display:flex;align-items:center;gap:6px">✨ IA</button>
+  <button class="fab" style="position:static" onclick="openNewOrderModal()" title="Nuevo pedido">+</button>
+</div>
+
+<!-- MODAL: IA parse -->
+<div class="modal-overlay" id="ia-modal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('ia-modal')">×</button>
+    <div class="modal-title">✨ Registrar con IA</div>
+    <p style="font-size:14px;color:var(--chocolate-mid);margin-bottom:14px">Pega el mensaje de la clienta (WhatsApp, Instagram, etc.) y la IA rellena el pedido automáticamente.</p>
+    <div class="field">
+      <label class="label">Mensaje de la clienta</label>
+      <textarea class="textarea" id="ia-input" style="min-height:120px" placeholder="Ej: Hola! quiero una torta de chocolate para el 15 de mayo a las 6pm, la entrega es en Miraflores, dirección Av. Pardo 123. Porciones para 20 personas, con decoración de flores rosadas. Mi nombre es Lucía, cel 987654321. Precio acordado 180 soles, dejo de adelanto 80."></textarea>
+    </div>
+    <button class="btn btn-primary" id="ia-btn" onclick="parseWithIA()">Analizar mensaje</button>
+    <div id="ia-result" style="margin-top:14px;display:none">
+      <div style="font-size:13px;font-weight:500;color:var(--sage);margin-bottom:8px">✓ Campos detectados — revisa y confirma:</div>
+      <div id="ia-preview" class="card" style="font-size:14px"></div>
+      <button class="btn btn-primary" style="margin-top:10px" onclick="applyIAResult()">Abrir en formulario</button>
+    </div>
+    <div id="ia-error" style="display:none;margin-top:10px;font-size:13px;color:var(--error)"></div>
+  </div>
+</div>
+
+<!-- MODAL: NUEVO / EDITAR PEDIDO -->
+<div class="modal-overlay" id="order-modal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('order-modal')">×</button>
+    <div class="modal-title" id="order-modal-title">Nuevo pedido</div>
+
+    <div class="field">
+      <label class="label">Cliente</label>
+      <input class="input" id="f-client-search" type="text" placeholder="Nombre del cliente" oninput="suggestClients()" autocomplete="off">
+      <div id="client-suggestions" style="background:white;border-radius:8px;border:1px solid rgba(200,130,58,0.2);margin-top:4px;display:none;"></div>
+    </div>
+    <div class="field">
+      <label class="label">Teléfono</label>
+      <input class="input" id="f-phone" type="tel" placeholder="Ej: 999 123 456">
+    </div>
+    <div class="row2">
+      <div class="field">
+        <label class="label">Fecha de entrega</label>
+        <input class="input" id="f-date" type="date">
+      </div>
+      <div class="field">
+        <label class="label">Hora</label>
+        <input class="input" id="f-time" type="time">
+      </div>
+    </div>
+    <div class="field">
+      <label class="label">Lugar de entrega</label>
+      <input class="input" id="f-place" type="text" placeholder="Dirección o referencia">
+    </div>
+    <div class="field">
+      <label class="label">Tipo de producto</label>
+      <div class="pill-group" id="product-type-pills">
+        <button class="pill" onclick="selectPill(this,'type')">Torta</button>
+        <button class="pill" onclick="selectPill(this,'type')">Cupcakes</button>
+        <button class="pill" onclick="selectPill(this,'type')">Galletas</button>
+        <button class="pill" onclick="selectPill(this,'type')">Postre</button>
+        <button class="pill" onclick="selectPill(this,'type')">Otro</button>
+      </div>
+    </div>
+    <div class="row2">
+      <div class="field">
+        <label class="label">Sabor</label>
+        <input class="input" id="f-flavor" type="text" placeholder="Ej: Chocolate, vainilla">
+      </div>
+      <div class="field">
+        <label class="label">Tamaño / porciones</label>
+        <input class="input" id="f-size" type="text" placeholder="Ej: 20 porciones">
+      </div>
+    </div>
+    <div class="field">
+      <label class="label">Descripción / diseño</label>
+      <textarea class="textarea" id="f-desc" placeholder="Describe el diseño, colores, temática…"></textarea>
+    </div>
+    <div class="field">
+      <label class="label">Foto de referencia</label>
+      <div class="photo-upload-area" onclick="document.getElementById('f-photo-input').click()">
+        📷 Toca para agregar foto
+      </div>
+      <input type="file" id="f-photo-input" accept="image/*" style="display:none" onchange="handlePhoto(this)">
+      <img id="f-photo-preview" class="photo-preview" style="display:none">
+    </div>
+    <div class="row2">
+      <div class="field">
+        <label class="label">Precio (S/)</label>
+        <input class="input" id="f-price" type="number" placeholder="0.00">
+      </div>
+      <div class="field">
+        <label class="label">Adelanto (S/)</label>
+        <input class="input" id="f-paid" type="number" placeholder="0.00">
+      </div>
+    </div>
+    <div class="field">
+      <label class="label">Estado</label>
+      <div class="pill-group" id="status-pills">
+        <button class="pill active" onclick="selectPill(this,'status')">Pendiente</button>
+        <button class="pill" onclick="selectPill(this,'status')">Listo</button>
+        <button class="pill" onclick="selectPill(this,'status')">Entregado</button>
+      </div>
+    </div>
+    <div class="field">
+      <label class="label">Notas internas</label>
+      <textarea class="textarea" id="f-notes" placeholder="Notas para la cocinera…" style="min-height:60px"></textarea>
+    </div>
+    <div class="flex-row" style="margin-top:8px">
+      <button class="btn btn-primary" onclick="saveOrder()">Guardar pedido</button>
+    </div>
+    <div id="edit-delete-row" style="display:none;margin-top:10px">
+      <button class="btn btn-danger" onclick="deleteOrder()">Eliminar pedido</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: DETALLE CLIENTE -->
+<div class="modal-overlay" id="client-modal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('client-modal')">×</button>
+    <div id="client-modal-content"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ── DATA LAYER ──────────────────────────────────────────────
+const KEYS = { orders: 'dub_orders', clients: 'dub_clients' };
+function load(k) { try { return JSON.parse(localStorage.getItem(k)) || []; } catch { return []; } }
+function save(k, v) { localStorage.setItem(k, JSON.stringify(v)); }
+
+let orders = load(KEYS.orders);
+let clients = load(KEYS.clients);
+let editingOrderId = null;
+let selectedType = '';
+let selectedStatus = 'Pendiente';
+let currentPhotoData = null;
+
+function genId() { return Date.now().toString(36) + Math.random().toString(36).slice(2,6); }
+function saveAll() {
+  save(KEYS.orders, orders);
+  save(KEYS.clients, clients);
+}
+
+// ── EXPORTAR / IMPORTAR ──────────────────────────────────────
+function exportData() {
+  const data = { orders, exportedAt: new Date().toISOString(), version: 1 };
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  const date = new Date().toISOString().slice(0,10);
+  a.href = url; a.download = 'deunbocado_backup_' + date + '.json';
+  a.click(); URL.revokeObjectURL(url);
+  showToast('Backup descargado ✓');
+}
+
+function importData() {
+  const input = document.createElement('input');
+  input.type = 'file'; input.accept = '.json';
+  input.onchange = e => {
+    const file = e.target.files[0];
+    if(!file) return;
+    const reader = new FileReader();
+    reader.onload = ev => {
+      try {
+        const data = JSON.parse(ev.target.result);
+        if(!data.orders || !Array.isArray(data.orders)) throw new Error('Archivo inválido');
+        const existing = orders.length;
+        // Merge: add orders not already present by id
+        const ids = new Set(orders.map(o => o.id));
+        const newOnes = data.orders.filter(o => !ids.has(o.id));
+        orders = [...orders, ...newOnes];
+        saveAll();
+        renderWeek(); renderPedidos(); renderClientes(); updateHeaderCount();
+        showToast('Importados ' + newOnes.length + ' pedidos nuevos ✓');
+      } catch(err) {
+        showToast('Error al importar: ' + err.message);
+      }
+    };
+    reader.readAsText(file);
+  };
+  input.click();
+}
+
+// ── TABS ────────────────────────────────────────────────────
+let activePeriod = 'all';
+let iaResult = null;
+
+function switchTab(tab) {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('view-' + tab).classList.add('active');
+  document.querySelectorAll('.tab').forEach(t => { if(t.dataset.tab === tab) t.classList.add('active'); });
+  if(tab === 'semana') renderWeek();
+  if(tab === 'pedidos') renderPedidos();
+  if(tab === 'clientes') renderClientes();
+  updateHeaderCount();
+}
+
+function selectPeriod(el) {
+  document.querySelectorAll('#period-pills .pill').forEach(p => p.classList.remove('active'));
+  el.classList.add('active');
+  activePeriod = el.dataset.period;
+  document.getElementById('custom-range').style.display = activePeriod === 'custom' ? 'grid' : 'none';
+  renderPedidos();
+}
+
+function getDateRange() {
+  const now = new Date();
+  const todayStr = now.toISOString().slice(0,10);
+  if(activePeriod === 'today') return [todayStr, todayStr];
+  if(activePeriod === 'week') {
+    const dow = now.getDay(); const mon = new Date(now); mon.setDate(now.getDate() - (dow===0?6:dow-1));
+    const sun = new Date(mon); sun.setDate(mon.getDate()+6);
+    return [mon.toISOString().slice(0,10), sun.toISOString().slice(0,10)];
+  }
+  if(activePeriod === 'month') {
+    return [now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0')+'-01',
+            now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0')+'-31'];
+  }
+  if(activePeriod === 'year') return [now.getFullYear()+'-01-01', now.getFullYear()+'-12-31'];
+  if(activePeriod === 'custom') {
+    return [document.getElementById('filter-from').value||'', document.getElementById('filter-to').value||''];
+  }
+  return [null, null];
+}
+
+// ── WEEK VIEW ───────────────────────────────────────────────
+function renderWeek() {
+  const today = new Date();
+  const dayOfWeek = today.getDay();
+  const monday = new Date(today);
+  monday.setDate(today.getDate() - (dayOfWeek === 0 ? 6 : dayOfWeek - 1));
+
+  const days = [];
+  for(let i = 0; i < 7; i++) {
+    const d = new Date(monday);
+    d.setDate(monday.getDate() + i);
+    days.push(d);
+  }
+
+  const weekOrders = orders.filter(o => {
+    if(!o.date) return false;
+    const od = new Date(o.date + 'T00:00:00');
+    return od >= monday && od <= days[6];
+  });
+
+  const total = weekOrders.reduce((s,o) => s + (parseFloat(o.price)||0), 0);
+  const deuda = weekOrders.reduce((s,o) => s + Math.max(0, (parseFloat(o.price)||0) - (parseFloat(o.paid)||0)), 0);
+  const pending = weekOrders.filter(o => o.status !== 'Entregado').length;
+
+  document.getElementById('week-summary').innerHTML = `
+    <div class="summary-card"><div class="summary-num">${weekOrders.length}</div><div class="summary-label">Pedidos</div></div>
+    <div class="summary-card"><div class="summary-num">${pending}</div><div class="summary-label">Pendientes</div></div>
+    <div class="summary-card"><div class="summary-num">S/${total.toFixed(0)}</div><div class="summary-label">Total semana</div></div>
+  `;
+
+  const dayNames = ['Lunes','Martes','Miércoles','Jueves','Viernes','Sábado','Domingo'];
+  let html = '';
+  days.forEach((d, i) => {
+    const dateStr = d.toISOString().slice(0,10);
+    const dayOrders = weekOrders.filter(o => o.date === dateStr).sort((a,b) => (a.time||'').localeCompare(b.time||''));
+    const isToday = d.toDateString() === today.toDateString();
+    html += `<div class="week-day">
+      <div class="week-day-title">${dayNames[i]} ${d.getDate()}/${d.getMonth()+1}${isToday ? ' · HOY' : ''}</div>`;
+    if(dayOrders.length === 0) {
+      html += `<div style="font-size:13px;color:var(--chocolate-mid);padding:4px 0 8px">Sin pedidos</div>`;
+    } else {
+      dayOrders.forEach(o => {
+        html += `<div class="order-mini ${o.status==='Entregado'?'done':''}" onclick="openEditOrderModal('${o.id}')">
+          <div>
+            <div class="order-mini-name">${o.client}</div>
+            <div class="order-mini-desc">${o.type||''} ${o.flavor ? '· '+o.flavor : ''} ${o.size ? '· '+o.size : ''}</div>
+          </div>
+          <div style="text-align:right">
+            <div style="font-size:13px;font-weight:500;color:var(--caramel-dark)">${o.time||''}</div>
+            <div style="font-size:12px;color:var(--chocolate-mid)">S/${o.price||0}</div>
+          </div>
+        </div>`;
+      });
+    }
+    html += `</div>`;
+  });
+  document.getElementById('week-content').innerHTML = html;
+}
+
+// ── PEDIDOS LIST ─────────────────────────────────────────────
+function renderPedidos() {
+  const q = (document.getElementById('search-input')?.value || '').toLowerCase();
+  const [from, to] = getDateRange();
+  let filtered = [...orders].sort((a,b) => (a.date||'').localeCompare(b.date||'') || (a.time||'').localeCompare(b.time||''));
+  if(from) filtered = filtered.filter(o => !o.date || o.date >= from);
+  if(to)   filtered = filtered.filter(o => !o.date || o.date <= to);
+  if(q) filtered = filtered.filter(o =>
+    (o.client||'').toLowerCase().includes(q) ||
+    (o.flavor||'').toLowerCase().includes(q) ||
+    (o.desc||'').toLowerCase().includes(q) ||
+    (o.type||'').toLowerCase().includes(q)
+  );
+
+  const el = document.getElementById('pedidos-list');
+  if(filtered.length === 0) {
+    el.innerHTML = `<div class="empty"><div class="empty-icon">🎂</div><p>No hay pedidos aún.<br>Toca + para agregar.</p></div>`;
+    return;
+  }
+
+  el.innerHTML = filtered.map(o => {
+    const debt = Math.max(0, (parseFloat(o.price)||0) - (parseFloat(o.paid)||0));
+    const statusMap = { 'Pendiente':'badge-pending','Listo':'badge-done','Entregado':'badge-partial' };
+    return `<div class="card" onclick="openEditOrderModal('${o.id}')">
+      <div class="card-header">
+        <div>
+          <div class="card-title">${o.client}</div>
+          <div class="card-sub">${o.date ? fmtDate(o.date) : ''}${o.time ? ' · '+o.time : ''}${o.place ? ' · '+o.place : ''}</div>
+        </div>
+        <span class="badge ${statusMap[o.status]||'badge-pending'}">${o.status||'Pendiente'}</span>
+      </div>
+      ${o.type||o.flavor||o.size ? `<div style="font-size:14px;margin-bottom:8px;color:var(--chocolate)">${[o.type,o.flavor,o.size].filter(Boolean).join(' · ')}</div>` : ''}
+      ${o.desc ? `<div style="font-size:13px;color:var(--chocolate-mid);margin-bottom:8px">${o.desc}</div>` : ''}
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-top:6px">
+        <div style="font-size:14px">💰 S/${parseFloat(o.price||0).toFixed(2)}</div>
+        ${debt > 0 ? `<div style="font-size:13px;color:var(--error);font-weight:500">Debe S/${debt.toFixed(2)}</div>` : `<div style="font-size:13px;color:var(--sage);font-weight:500">Pagado ✓</div>`}
+      </div>
+    </div>`;
+  }).join('');
+  updateHeaderCount();
+}
+
+// ── CLIENTES ─────────────────────────────────────────────────
+function renderClientes() {
+  const el = document.getElementById('clientes-list');
+  // Aggregate from orders
+  const map = {};
+  orders.forEach(o => {
+    if(!o.client) return;
+    const key = o.client.toLowerCase();
+    if(!map[key]) map[key] = { name: o.client, phone: o.phone, count: 0, totalDebt: 0, orders: [] };
+    map[key].count++;
+    map[key].totalDebt += Math.max(0, (parseFloat(o.price)||0) - (parseFloat(o.paid)||0));
+    map[key].orders.push(o);
+    if(o.phone) map[key].phone = o.phone;
+  });
+
+  const list = Object.values(map).sort((a,b) => b.count - a.count);
+  if(list.length === 0) {
+    el.innerHTML = `<div class="empty"><div class="empty-icon">🧁</div><p>Aún no hay clientes registradas.</p></div>`;
+    return;
+  }
+  el.innerHTML = list.map(c => `
+    <div class="client-card" onclick="openClientModal('${c.name.replace(/'/g,"\\'")}')">
+      <div>
+        <div class="client-name">${c.name}</div>
+        <div class="client-meta">${c.phone||'Sin teléfono'} · ${c.count} pedido${c.count!==1?'s':''}</div>
+      </div>
+      <div class="debt-tag ${c.totalDebt>0?'has-debt':'no-debt'}">
+        ${c.totalDebt > 0 ? `Debe S/${c.totalDebt.toFixed(2)}` : 'Al día ✓'}
+      </div>
+    </div>
+  `).join('');
+}
+
+function openClientModal(name) {
+  const clientOrders = orders.filter(o => o.client.toLowerCase() === name.toLowerCase());
+  const totalDebt = clientOrders.reduce((s,o) => s + Math.max(0,(parseFloat(o.price)||0)-(parseFloat(o.paid)||0)), 0);
+  const totalSpent = clientOrders.reduce((s,o) => s + (parseFloat(o.price)||0), 0);
+  const phone = clientOrders.find(o=>o.phone)?.phone || '';
+
+  document.getElementById('client-modal-content').innerHTML = `
+    <div class="modal-title">${name}</div>
+    ${phone ? `<div style="font-size:14px;margin-bottom:4px">📞 <a href="tel:${phone}" style="color:var(--caramel)">${phone}</a></div>` : ''}
+    <div style="display:flex;gap:16px;margin-bottom:20px;margin-top:8px">
+      <div class="summary-card" style="flex:1"><div class="summary-num">${clientOrders.length}</div><div class="summary-label">Pedidos</div></div>
+      <div class="summary-card" style="flex:1"><div class="summary-num">S/${totalSpent.toFixed(0)}</div><div class="summary-label">Total</div></div>
+      <div class="summary-card" style="flex:1"><div class="summary-num" style="color:${totalDebt>0?'var(--error)':'var(--sage)'}">S/${totalDebt.toFixed(0)}</div><div class="summary-label">Deuda</div></div>
+    </div>
+    <div style="font-weight:500;margin-bottom:10px;font-size:14px">Historial de pedidos</div>
+    ${clientOrders.sort((a,b)=>(b.date||'').localeCompare(a.date||'')).map(o => `
+      <div class="order-mini" style="cursor:default" onclick="event.stopPropagation();openEditOrderModal('${o.id}');closeModal('client-modal')">
+        <div>
+          <div class="order-mini-name">${o.type||'Pedido'} ${o.flavor ? '· '+o.flavor : ''}</div>
+          <div class="order-mini-desc">${o.date ? fmtDate(o.date) : ''} · S/${o.price||0}</div>
+        </div>
+        <span class="badge badge-pending" style="font-size:10px">${o.status||'Pendiente'}</span>
+      </div>
+    `).join('')}
+  `;
+  openModal('client-modal');
+}
+
+// ── PRINT ────────────────────────────────────────────────────
+function renderPrintArea() {
+  const from = document.getElementById('print-from').value;
+  const to   = document.getElementById('print-to').value;
+  let filtered = [...orders].sort((a,b) => {
+    const cmp = (a.date||'').localeCompare(b.date||'');
+    return cmp !== 0 ? cmp : (a.time||'').localeCompare(b.time||'');
+  });
+  if(from) filtered = filtered.filter(o => o.date >= from);
+  if(to)   filtered = filtered.filter(o => o.date <= to);
+
+  const area = document.getElementById('print-area');
+  if(filtered.length === 0) {
+    area.innerHTML = `<div class="empty"><p>No hay pedidos en ese rango.</p></div>`;
+    return;
+  }
+
+  let html = `<div class="print-page-header no-print" style="margin-bottom:10px;display:flex;justify-content:space-between;align-items:center">
+    <span style="font-family:var(--font-display);font-size:16px;color:var(--chocolate)">De Un Bocado — ${filtered.length} pedido${filtered.length!==1?'s':''}</span>
+    <span style="font-size:12px;color:#888">${from?fmtDate(from):''} ${to&&to!==from?'→ '+fmtDate(to):''}</span>
+  </div>
+  <div id="print-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:8px">`;
+
+  filtered.forEach((o,i) => {
+    const debt = Math.max(0,(parseFloat(o.price)||0)-(parseFloat(o.paid)||0));
+    const debtStr = debt > 0 ? `<span style="color:#c0392b;font-weight:600">Debe S/${debt.toFixed(2)}</span>` : `<span style="color:#2a7a2e;font-weight:600">PAGADO</span>`;
+    html += `<div class="print-order-card" style="break-inside:avoid">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:5px">
+        <strong style="font-size:14px;font-family:Georgia,serif">${o.client}</strong>
+        <span style="font-size:11px;color:#666;text-align:right">${o.date?fmtDate(o.date):''}<br>${o.time||''}</span>
+      </div>
+      <div class="prow"><span class="plabel">Tel:</span><span>${o.phone||'—'}</span></div>
+      <div class="prow"><span class="plabel">Lugar:</span><span>${o.place||'—'}</span></div>
+      <div class="prow"><span class="plabel">Producto:</span><span>${[o.type,o.flavor,o.size].filter(Boolean).join(' · ')||'—'}</span></div>
+      ${o.desc?`<div class="prow"><span class="plabel">Diseño:</span><span>${o.desc}</span></div>`:''}
+      ${o.notes?`<div class="prow"><span class="plabel">Notas:</span><span>${o.notes}</span></div>`:''}
+      <div class="prow" style="margin-top:4px"><span class="plabel">S/${parseFloat(o.price||0).toFixed(2)}</span>${debtStr}</div>
+      ${o.photo?`<img src="${o.photo}" style="max-height:70px;max-width:100%;margin-top:5px;border-radius:4px;object-fit:cover">`:``}
+    </div>`;
+  });
+
+  html += `</div>`;
+  area.innerHTML = html;
+}
+
+// ── MODAL HELPERS ────────────────────────────────────────────
+function openModal(id) { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+// ── ORDER FORM ───────────────────────────────────────────────
+function openNewOrderModal() {
+  editingOrderId = null;
+  selectedType = '';
+  selectedStatus = 'Pendiente';
+  currentPhotoData = null;
+
+  document.getElementById('order-modal-title').textContent = 'Nuevo pedido';
+  ['f-client-search','f-phone','f-flavor','f-size','f-desc','f-notes'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('f-price').value = '';
+  document.getElementById('f-paid').value = '';
+  document.getElementById('f-date').value = '';
+  document.getElementById('f-time').value = '';
+  document.getElementById('f-place').value = '';
+  document.getElementById('f-photo-preview').style.display = 'none';
+  document.getElementById('f-photo-input').value = '';
+  document.querySelectorAll('#product-type-pills .pill').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('#status-pills .pill').forEach(p => p.classList.remove('active'));
+  document.querySelector('#status-pills .pill').classList.add('active');
+  document.getElementById('edit-delete-row').style.display = 'none';
+  document.getElementById('client-suggestions').style.display = 'none';
+
+  // Set default date to today
+  document.getElementById('f-date').value = new Date().toISOString().slice(0,10);
+  openModal('order-modal');
+}
+
+function openEditOrderModal(id) {
+  const o = orders.find(x => x.id === id);
+  if(!o) return;
+  editingOrderId = id;
+  selectedType = o.type || '';
+  selectedStatus = o.status || 'Pendiente';
+  currentPhotoData = o.photo || null;
+
+  document.getElementById('order-modal-title').textContent = 'Editar pedido';
+  document.getElementById('f-client-search').value = o.client || '';
+  document.getElementById('f-phone').value = o.phone || '';
+  document.getElementById('f-date').value = o.date || '';
+  document.getElementById('f-time').value = o.time || '';
+  document.getElementById('f-place').value = o.place || '';
+  document.getElementById('f-flavor').value = o.flavor || '';
+  document.getElementById('f-size').value = o.size || '';
+  document.getElementById('f-desc').value = o.desc || '';
+  document.getElementById('f-notes').value = o.notes || '';
+  document.getElementById('f-price').value = o.price || '';
+  document.getElementById('f-paid').value = o.paid || '';
+
+  document.querySelectorAll('#product-type-pills .pill').forEach(p => {
+    p.classList.toggle('active', p.textContent === o.type);
+  });
+  document.querySelectorAll('#status-pills .pill').forEach(p => {
+    p.classList.toggle('active', p.textContent === o.status);
+  });
+
+  if(o.photo) {
+    document.getElementById('f-photo-preview').src = o.photo;
+    document.getElementById('f-photo-preview').style.display = 'block';
+  } else {
+    document.getElementById('f-photo-preview').style.display = 'none';
+  }
+
+  document.getElementById('edit-delete-row').style.display = 'block';
+  document.getElementById('client-suggestions').style.display = 'none';
+  openModal('order-modal');
+}
+
+function saveOrder() {
+  const client = document.getElementById('f-client-search').value.trim();
+  const date = document.getElementById('f-date').value;
+  if(!client) { showToast('Ingresa el nombre del cliente'); return; }
+  if(!date) { showToast('Ingresa la fecha de entrega'); return; }
+
+  const order = {
+    id: editingOrderId || genId(),
+    client,
+    phone: document.getElementById('f-phone').value.trim(),
+    date,
+    time: document.getElementById('f-time').value,
+    place: document.getElementById('f-place').value.trim(),
+    type: selectedType,
+    flavor: document.getElementById('f-flavor').value.trim(),
+    size: document.getElementById('f-size').value.trim(),
+    desc: document.getElementById('f-desc').value.trim(),
+    notes: document.getElementById('f-notes').value.trim(),
+    price: document.getElementById('f-price').value,
+    paid: document.getElementById('f-paid').value,
+    status: selectedStatus,
+    photo: currentPhotoData,
+    updatedAt: new Date().toISOString()
+  };
+
+  if(editingOrderId) {
+    const idx = orders.findIndex(o => o.id === editingOrderId);
+    orders[idx] = order;
+  } else {
+    orders.unshift(order);
+  }
+
+  saveAll();
+  closeModal('order-modal');
+  showToast(editingOrderId ? 'Pedido actualizado ✓' : 'Pedido guardado ✓');
+
+  const activeTab = document.querySelector('.tab.active').textContent.toLowerCase();
+  if(activeTab.includes('sem')) renderWeek();
+  else if(activeTab.includes('ped')) renderPedidos();
+  updateHeaderCount();
+}
+
+function deleteOrder() {
+  if(!confirm('¿Eliminar este pedido?')) return;
+  const delId = editingOrderId;
+  orders = orders.filter(o => o.id !== delId);
+  saveAll();
+  closeModal('order-modal');
+  showToast('Pedido eliminado');
+  renderWeek();
+  renderPedidos();
+  renderClientes();
+  updateHeaderCount();
+}
+
+// ── PILL SELECTION ───────────────────────────────────────────
+function selectPill(el, group) {
+  el.closest('.pill-group').querySelectorAll('.pill').forEach(p => p.classList.remove('active'));
+  el.classList.add('active');
+  if(group === 'type') selectedType = el.textContent;
+  if(group === 'status') selectedStatus = el.textContent;
+}
+
+// ── CLIENT AUTOCOMPLETE ──────────────────────────────────────
+function suggestClients() {
+  const q = document.getElementById('f-client-search').value.toLowerCase();
+  const sug = document.getElementById('client-suggestions');
+  if(!q || q.length < 2) { sug.style.display = 'none'; return; }
+
+  const names = [...new Set(orders.map(o => o.client).filter(n => n && n.toLowerCase().includes(q)))].slice(0,5);
+  if(!names.length) { sug.style.display = 'none'; return; }
+
+  sug.innerHTML = names.map(n => `<div onclick="selectClient('${n.replace(/'/g,"\\'")}');event.stopPropagation()" style="padding:10px 14px;cursor:pointer;font-size:14px;border-bottom:1px solid rgba(200,130,58,0.1)">${n}</div>`).join('');
+  sug.style.display = 'block';
+}
+
+function selectClient(name) {
+  document.getElementById('f-client-search').value = name;
+  document.getElementById('client-suggestions').style.display = 'none';
+  const phone = orders.find(o => o.client.toLowerCase() === name.toLowerCase() && o.phone)?.phone;
+  if(phone) document.getElementById('f-phone').value = phone;
+}
+
+// ── PHOTO ────────────────────────────────────────────────────
+function handlePhoto(input) {
+  const file = input.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    currentPhotoData = e.target.result;
+    const img = document.getElementById('f-photo-preview');
+    img.src = currentPhotoData;
+    img.style.display = 'block';
+  };
+  reader.readAsDataURL(file);
+}
+
+// ── HELPERS ──────────────────────────────────────────────────
+function fmtDate(d) {
+  if(!d) return '';
+  const [y,m,day] = d.split('-');
+  const months = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+  return `${parseInt(day)} ${months[parseInt(m)-1]} ${y}`;
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+function updateHeaderCount() {
+  const upcoming = orders.filter(o => o.date >= new Date().toISOString().slice(0,10) && o.status !== 'Entregado').length;
+  document.getElementById('header-count').textContent = upcoming + ' activo' + (upcoming!==1?'s':'');
+}
+
+
+// ── IA PARSE ─────────────────────────────────────────────────
+function openIAModal() {
+  document.getElementById('ia-input').value = '';
+  document.getElementById('ia-result').style.display = 'none';
+  document.getElementById('ia-error').style.display = 'none';
+  document.getElementById('ia-btn').textContent = 'Analizar mensaje';
+  document.getElementById('ia-btn').disabled = false;
+  iaResult = null;
+  openModal('ia-modal');
+}
+
+async function parseWithIA() {
+  const text = document.getElementById('ia-input').value.trim();
+  if(!text) { showToast('Pega un mensaje primero'); return; }
+
+  const btn = document.getElementById('ia-btn');
+  btn.textContent = 'Analizando…'; btn.disabled = true;
+  document.getElementById('ia-result').style.display = 'none';
+  document.getElementById('ia-error').style.display = 'none';
+
+  const prompt = `Eres un asistente para una pastelería llamada "De Un Bocado". Analiza el siguiente mensaje de una clienta y extrae los datos del pedido en JSON. Responde SOLO con el JSON, sin texto extra, sin markdown.
+
+Campos a extraer (usa null si no se menciona):
+- client: nombre de la clienta
+- phone: número de teléfono
+- date: fecha de entrega en formato YYYY-MM-DD (el año actual es ${new Date().getFullYear()})
+- time: hora de entrega en formato HH:MM (24h)
+- place: lugar o dirección de entrega
+- type: tipo de producto (Torta, Cupcakes, Galletas, Postre, u Otro)
+- flavor: sabor
+- size: tamaño o número de porciones
+- desc: descripción del diseño o decoración
+- price: precio total como número
+- paid: adelanto o monto pagado como número
+- notes: cualquier nota adicional
+
+Mensaje de la clienta:
+${text}`;
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 500,
+        messages: [{ role: 'user', content: prompt }]
+      })
+    });
+    const data = await res.json();
+    const raw = data.content?.[0]?.text || '';
+    const clean = raw.replace(/```json|```/g,'').trim();
+    iaResult = JSON.parse(clean);
+
+    // Show preview
+    const fields = [
+      ['Cliente', iaResult.client],['Teléfono', iaResult.phone],
+      ['Fecha', iaResult.date ? fmtDate(iaResult.date) : null],['Hora', iaResult.time],
+      ['Lugar', iaResult.place],['Producto', iaResult.type],
+      ['Sabor', iaResult.flavor],['Tamaño', iaResult.size],
+      ['Diseño', iaResult.desc],['Precio', iaResult.price ? 'S/'+iaResult.price : null],
+      ['Adelanto', iaResult.paid ? 'S/'+iaResult.paid : null],['Notas', iaResult.notes]
+    ].filter(([,v]) => v);
+
+    document.getElementById('ia-preview').innerHTML = fields.map(([k,v]) =>
+      `<div style="display:flex;gap:8px;margin-bottom:4px"><span style="color:var(--chocolate-mid);min-width:70px;font-size:13px">${k}:</span><span style="font-weight:500">${v}</span></div>`
+    ).join('');
+
+    document.getElementById('ia-result').style.display = 'block';
+  } catch(e) {
+    document.getElementById('ia-error').textContent = 'No se pudo analizar el mensaje. Intenta de nuevo.';
+    document.getElementById('ia-error').style.display = 'block';
+  } finally {
+    btn.textContent = 'Analizar mensaje'; btn.disabled = false;
+  }
+}
+
+function applyIAResult() {
+  if(!iaResult) return;
+  closeModal('ia-modal');
+  openNewOrderModal();
+  setTimeout(() => {
+    if(iaResult.client) document.getElementById('f-client-search').value = iaResult.client;
+    if(iaResult.phone)  document.getElementById('f-phone').value = iaResult.phone;
+    if(iaResult.date)   document.getElementById('f-date').value = iaResult.date;
+    if(iaResult.time)   document.getElementById('f-time').value = iaResult.time;
+    if(iaResult.place)  document.getElementById('f-place').value = iaResult.place;
+    if(iaResult.flavor) document.getElementById('f-flavor').value = iaResult.flavor;
+    if(iaResult.size)   document.getElementById('f-size').value = iaResult.size;
+    if(iaResult.desc)   document.getElementById('f-desc').value = iaResult.desc;
+    if(iaResult.price)  document.getElementById('f-price').value = iaResult.price;
+    if(iaResult.paid)   document.getElementById('f-paid').value = iaResult.paid;
+    if(iaResult.notes)  document.getElementById('f-notes').value = iaResult.notes;
+    if(iaResult.type) {
+      document.querySelectorAll('#product-type-pills .pill').forEach(p => {
+        if(p.textContent === iaResult.type) { p.classList.add('active'); selectedType = iaResult.type; }
+      });
+    }
+    // Autocomplete phone if client known
+    if(iaResult.client) selectClient(iaResult.client);
+  }, 100);
+}
+
+// Close modals on overlay click
+document.querySelectorAll('.modal-overlay').forEach(overlay => {
+  overlay.addEventListener('click', e => { if(e.target === overlay) overlay.classList.remove('open'); });
+});
+
+// Set default print date range
+const todayStr = new Date().toISOString().slice(0,10);
+const tomorrowStr = new Date(Date.now()+86400000).toISOString().slice(0,10);
+document.getElementById('print-from').value = todayStr;
+document.getElementById('print-to').value = tomorrowStr;
+
+// Init
+renderWeek();
+updateHeaderCount();
+</script>
+</body>
+</html>
