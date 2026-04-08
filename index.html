@@ -346,7 +346,19 @@ body { background: var(--cream); color: var(--chocolate); font-family: var(--fon
   <div class="modal">
     <button class="modal-close" onclick="closeModal('ia-modal')">×</button>
     <div class="modal-title">✨ Registrar con IA</div>
-    <p style="font-size:14px;color:var(--chocolate-mid);margin-bottom:14px">Pega el mensaje de la clienta (WhatsApp, Instagram, etc.) y la IA rellena el pedido automáticamente.</p>
+    <div id="ia-key-section">
+      <p style="font-size:14px;color:var(--chocolate-mid);margin-bottom:10px">Pega tu API key de Anthropic para activar la IA. Se guarda solo en tu celular.</p>
+      <div class="field" style="margin-bottom:8px">
+        <label class="label">API Key</label>
+        <input class="input" id="ia-api-key" type="password" placeholder="sk-ant-…" style="font-size:13px">
+      </div>
+      <button class="btn btn-outline" style="margin-bottom:14px" onclick="saveApiKey()">Guardar key</button>
+      <div style="font-size:12px;color:var(--chocolate-mid);margin-bottom:14px;line-height:1.6;padding:10px 12px;background:var(--blush-light);border-radius:8px">
+        Obtén tu key gratis en <strong>console.anthropic.com</strong> → API Keys → Create Key. Tiene créditos de prueba incluidos.
+      </div>
+    </div>
+    <div id="ia-key-ok" style="display:none;font-size:13px;color:var(--sage);margin-bottom:12px;display:none">✓ API Key guardada</div>
+    <p style="font-size:14px;color:var(--chocolate-mid);margin-bottom:14px">Pega el mensaje de la clienta y la IA rellena el pedido automáticamente.</p>
     <div class="field">
       <label class="label">Mensaje de la clienta</label>
       <textarea class="textarea" id="ia-input" style="min-height:120px" placeholder="Ej: Hola! quiero una torta de chocolate para el 15 de mayo a las 6pm, la entrega es en Miraflores, dirección Av. Pardo 123. Porciones para 20 personas, con decoración de flores rosadas. Mi nombre es Lucía, cel 987654321. Precio acordado 180 soles, dejo de adelanto 80."></textarea>
@@ -962,6 +974,28 @@ function updateHeaderCount() {
 
 
 // ── IA PARSE ─────────────────────────────────────────────────
+const API_KEY_STORAGE = 'dub_api_key';
+
+function saveApiKey() {
+  const key = document.getElementById('ia-api-key').value.trim();
+  if(!key || !key.startsWith('sk-')) { showToast('La key debe empezar con sk-'); return; }
+  localStorage.setItem(API_KEY_STORAGE, key);
+  showApiKeyStatus(true);
+  showToast('API Key guardada ✓');
+}
+
+function showApiKeyStatus(saved) {
+  const keySection = document.getElementById('ia-key-section');
+  const keyOk = document.getElementById('ia-key-ok');
+  if(saved) {
+    keySection.style.display = 'none';
+    keyOk.style.display = 'block';
+  } else {
+    keySection.style.display = 'block';
+    keyOk.style.display = 'none';
+  }
+}
+
 function openIAModal() {
   document.getElementById('ia-input').value = '';
   document.getElementById('ia-result').style.display = 'none';
@@ -969,12 +1003,19 @@ function openIAModal() {
   document.getElementById('ia-btn').textContent = 'Analizar mensaje';
   document.getElementById('ia-btn').disabled = false;
   iaResult = null;
+  // Show key section if not saved
+  const savedKey = localStorage.getItem(API_KEY_STORAGE) || '';
+  document.getElementById('ia-api-key').value = savedKey;
+  showApiKeyStatus(!!savedKey);
   openModal('ia-modal');
 }
 
 async function parseWithIA() {
   const text = document.getElementById('ia-input').value.trim();
   if(!text) { showToast('Pega un mensaje primero'); return; }
+
+  const apiKey = localStorage.getItem(API_KEY_STORAGE) || '';
+  if(!apiKey) { showToast('Primero guarda tu API Key'); showApiKeyStatus(false); return; }
 
   const btn = document.getElementById('ia-btn');
   btn.textContent = 'Analizando…'; btn.disabled = true;
@@ -1003,13 +1044,23 @@ ${text}`;
   try {
     const res = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true'
+      },
       body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
+        model: 'claude-haiku-4-5-20251001',
         max_tokens: 500,
         messages: [{ role: 'user', content: prompt }]
       })
     });
+    if(!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      if(res.status === 401) throw new Error('API Key inválida. Verifica que sea correcta.');
+      throw new Error(err.error?.message || 'Error ' + res.status);
+    }
     const data = await res.json();
     const raw = data.content?.[0]?.text || '';
     const clean = raw.replace(/```json|```/g,'').trim();
