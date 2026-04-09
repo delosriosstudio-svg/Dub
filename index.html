@@ -172,18 +172,43 @@ body { background: var(--cream); color: var(--chocolate); font-family: var(--fon
 @media print {
   body * { visibility: hidden; }
   #print-area, #print-area * { visibility: visible; }
-  #print-area { position: absolute; left: 0; top: 0; width: 100%; padding: 8mm; }
+  #print-area {
+    position: absolute; left: 0; top: 0;
+    width: 210mm; padding: 6mm;
+  }
   .no-print { display: none !important; }
-  #print-grid { display: grid !important; grid-template-columns: 1fr 1fr; gap: 6px !important; }
-  .print-order-card { padding: 8px !important; margin-bottom: 0 !important; }
+  #print-grid {
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+    gap: 0 !important;
+  }
+  .print-order-card {
+    width: 100%;
+    height: 141mm; /* exactly half A4 (297mm / 2) */
+    box-sizing: border-box;
+    padding: 10mm 12mm !important;
+    margin-bottom: 0 !important;
+    page-break-inside: avoid;
+    break-inside: avoid;
+    border: 2px solid #333 !important;
+    border-radius: 0 !important;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    overflow: hidden;
+  }
+  /* Dashed separator line between the two halves */
+  .print-order-card:nth-child(odd) {
+    border-bottom: 2px dashed #999 !important;
+  }
 }
 .print-order-card {
-  border: 1px solid #ccc; border-radius: 6px; padding: 10px;
-  margin-bottom: 8px; break-inside: avoid;
-  font-family: var(--font-body); font-size: 12px;
+  border: 2px solid #ccc; border-radius: 6px; padding: 14px;
+  margin-bottom: 10px; break-inside: avoid;
+  font-family: var(--font-body); font-size: 15px;
 }
-.print-order-card .prow { display: flex; gap: 4px; font-size: 12px; margin-bottom: 2px; }
-.print-order-card .plabel { color: #666; min-width: 60px; font-size: 11px; }
+.print-order-card .prow { display: flex; gap: 6px; font-size: 15px; margin-bottom: 4px; align-items: flex-start; }
+.print-order-card .plabel { color: #555; min-width: 80px; font-size: 14px; font-weight: 600; flex-shrink: 0; }
 
 /* CLIENT CARD */
 .client-card {
@@ -269,9 +294,12 @@ body { background: var(--cream); color: var(--chocolate); font-family: var(--fon
 <header class="app-header">
   <div>
     <h1>🎂 De Un Bocado</h1>
-    <div class="subtitle">Gestión de pedidos</div>
+    <div class="subtitle" id="sync-status">Solo local</div>
   </div>
-  <div class="header-badge" id="header-count">0 pedidos</div>
+  <div style="display:flex;gap:8px;align-items:center">
+    <button onclick="openSyncModal()" id="sync-btn" style="background:rgba(255,255,255,0.12);border:none;color:var(--blush);border-radius:20px;padding:5px 12px;font-size:12px;cursor:pointer;font-family:var(--font-body)">⚙ Sync</button>
+    <div class="header-badge" id="header-count">0 pedidos</div>
+  </div>
 </header>
 
 <div class="tabs">
@@ -319,18 +347,10 @@ body { background: var(--cream); color: var(--chocolate); font-family: var(--fon
       <div><label class="label">Desde</label><input type="date" class="input" id="print-from"></div>
       <div><label class="label">Hasta</label><input type="date" class="input" id="print-to"></div>
     </div>
-    <div class="flex-row" style="margin-bottom:10px">
+    <div class="flex-row">
       <button class="btn btn-primary" onclick="renderPrintArea()">Ver pedidos</button>
       <button class="btn btn-outline btn-sm" style="width:auto;padding:13px 16px" onclick="window.print()" title="Imprimir">🖨️</button>
     </div>
-  </div>
-  <div class="card no-print" style="margin-bottom:14px">
-    <div style="font-size:13px;font-weight:500;margin-bottom:10px;color:var(--chocolate-mid)">Backup entre dispositivos</div>
-    <div class="flex-row">
-      <button class="btn btn-outline" onclick="exportData()">⬇ Exportar backup</button>
-      <button class="btn btn-ghost" onclick="importData()">⬆ Importar backup</button>
-    </div>
-    <div style="font-size:12px;color:var(--chocolate-mid);margin-top:8px;line-height:1.5">Exporta desde un celular e importa en otro para transferir todos los pedidos.</div>
   </div>
   <div id="print-area"></div>
 </div>
@@ -341,24 +361,37 @@ body { background: var(--cream); color: var(--chocolate); font-family: var(--fon
   <button class="fab" style="position:static" onclick="openNewOrderModal()" title="Nuevo pedido">+</button>
 </div>
 
+<!-- MODAL: SYNC CONFIG -->
+<div class="modal-overlay" id="sync-modal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('sync-modal')">×</button>
+    <div class="modal-title">⚙ Sincronización</div>
+    <p style="font-size:14px;color:var(--chocolate-mid);margin-bottom:16px">Pega aquí la URL de tu Google Apps Script para sincronizar pedidos entre dispositivos.</p>
+    <div class="field">
+      <label class="label">URL del Apps Script</label>
+      <input class="input" id="script-url-input" type="url" placeholder="https://script.google.com/macros/s/…/exec" style="font-size:13px">
+    </div>
+    <div class="flex-row" style="margin-bottom:12px">
+      <button class="btn btn-primary" onclick="saveScriptUrl()">Guardar URL</button>
+      <button class="btn btn-outline" onclick="testConnection()" style="flex:0.6">Probar</button>
+    </div>
+    <div id="sync-test-result" style="font-size:13px;margin-bottom:12px;display:none"></div>
+    <div class="divider"></div>
+    <p style="font-size:13px;color:var(--chocolate-mid);margin-bottom:10px">Una vez conectada, puedes sincronizar manualmente:</p>
+    <div class="flex-row">
+      <button class="btn btn-outline" onclick="syncDown()">⬇ Descargar de la nube</button>
+      <button class="btn btn-outline" onclick="syncUp()">⬆ Subir a la nube</button>
+    </div>
+    <div id="sync-progress" style="font-size:13px;margin-top:10px;color:var(--chocolate-mid);display:none"></div>
+  </div>
+</div>
+
 <!-- MODAL: IA parse -->
 <div class="modal-overlay" id="ia-modal">
   <div class="modal">
     <button class="modal-close" onclick="closeModal('ia-modal')">×</button>
     <div class="modal-title">✨ Registrar con IA</div>
-    <div id="ia-key-section">
-      <p style="font-size:14px;color:var(--chocolate-mid);margin-bottom:10px">Pega tu API key de Anthropic para activar la IA. Se guarda solo en tu celular.</p>
-      <div class="field" style="margin-bottom:8px">
-        <label class="label">API Key</label>
-        <input class="input" id="ia-api-key" type="password" placeholder="sk-ant-…" style="font-size:13px">
-      </div>
-      <button class="btn btn-outline" style="margin-bottom:14px" onclick="saveApiKey()">Guardar key</button>
-      <div style="font-size:12px;color:var(--chocolate-mid);margin-bottom:14px;line-height:1.6;padding:10px 12px;background:var(--blush-light);border-radius:8px">
-        Obtén tu key gratis en <strong>console.anthropic.com</strong> → API Keys → Create Key. Tiene créditos de prueba incluidos.
-      </div>
-    </div>
-    <div id="ia-key-ok" style="display:none;font-size:13px;color:var(--sage);margin-bottom:12px;display:none">✓ API Key guardada</div>
-    <p style="font-size:14px;color:var(--chocolate-mid);margin-bottom:14px">Pega el mensaje de la clienta y la IA rellena el pedido automáticamente.</p>
+    <p style="font-size:14px;color:var(--chocolate-mid);margin-bottom:14px">Pega el mensaje de la clienta (WhatsApp, Instagram, etc.) y la IA rellena el pedido automáticamente.</p>
     <div class="field">
       <label class="label">Mensaje de la clienta</label>
       <textarea class="textarea" id="ia-input" style="min-height:120px" placeholder="Ej: Hola! quiero una torta de chocolate para el 15 de mayo a las 6pm, la entrega es en Miraflores, dirección Av. Pardo 123. Porciones para 20 personas, con decoración de flores rosadas. Mi nombre es Lucía, cel 987654321. Precio acordado 180 soles, dejo de adelanto 80."></textarea>
@@ -477,12 +510,14 @@ body { background: var(--cream); color: var(--chocolate); font-family: var(--fon
 
 <script>
 // ── DATA LAYER ──────────────────────────────────────────────
-const KEYS = { orders: 'dub_orders', clients: 'dub_clients' };
+const KEYS = { orders: 'dub_orders', clients: 'dub_clients', scriptUrl: 'dub_script_url' };
 function load(k) { try { return JSON.parse(localStorage.getItem(k)) || []; } catch { return []; } }
 function save(k, v) { localStorage.setItem(k, JSON.stringify(v)); }
+function loadStr(k) { return localStorage.getItem(k) || ''; }
 
 let orders = load(KEYS.orders);
 let clients = load(KEYS.clients);
+let scriptUrl = loadStr(KEYS.scriptUrl);
 let editingOrderId = null;
 let selectedType = '';
 let selectedStatus = 'Pendiente';
@@ -494,44 +529,145 @@ function saveAll() {
   save(KEYS.clients, clients);
 }
 
-// ── EXPORTAR / IMPORTAR ──────────────────────────────────────
-function exportData() {
-  const data = { orders, exportedAt: new Date().toISOString(), version: 1 };
-  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-  const url  = URL.createObjectURL(blob);
-  const a    = document.createElement('a');
-  const date = new Date().toISOString().slice(0,10);
-  a.href = url; a.download = 'deunbocado_backup_' + date + '.json';
-  a.click(); URL.revokeObjectURL(url);
-  showToast('Backup descargado ✓');
+// Auto-sync on save if URL configured
+async function saveAllAndSync(order) {
+  saveAll();
+  if(scriptUrl) {
+    try {
+      await cloudSave(order);
+      setSyncStatus('Sincronizado ✓', true);
+    } catch(e) {
+      setSyncStatus('Local (sin sync)', false);
+    }
+  }
 }
 
-function importData() {
-  const input = document.createElement('input');
-  input.type = 'file'; input.accept = '.json';
-  input.onchange = e => {
-    const file = e.target.files[0];
-    if(!file) return;
-    const reader = new FileReader();
-    reader.onload = ev => {
-      try {
-        const data = JSON.parse(ev.target.result);
-        if(!data.orders || !Array.isArray(data.orders)) throw new Error('Archivo inválido');
-        const existing = orders.length;
-        // Merge: add orders not already present by id
-        const ids = new Set(orders.map(o => o.id));
-        const newOnes = data.orders.filter(o => !ids.has(o.id));
-        orders = [...orders, ...newOnes];
-        saveAll();
-        renderWeek(); renderPedidos(); renderClientes(); updateHeaderCount();
-        showToast('Importados ' + newOnes.length + ' pedidos nuevos ✓');
-      } catch(err) {
-        showToast('Error al importar: ' + err.message);
-      }
+function setSyncStatus(msg, ok) {
+  const el = document.getElementById('sync-status');
+  el.textContent = msg;
+  el.style.color = ok ? 'rgba(120,220,150,0.9)' : 'rgba(242,201,160,0.6)';
+}
+
+async function cloudCall(params) {
+  const qs = Object.entries(params)
+    .map(([k,v]) => k + '=' + encodeURIComponent(typeof v === 'object' ? JSON.stringify(v) : v))
+    .join('&');
+  const url = scriptUrl + '?' + qs;
+  // Use no-cors mode with JSONP fallback for Apps Script cross-origin
+  return new Promise((resolve, reject) => {
+    const cbName = 'cb_' + Date.now();
+    const script = document.createElement('script');
+    const timeout = setTimeout(() => {
+      delete window[cbName];
+      script.remove();
+      reject(new Error('Timeout — verifica la URL del script'));
+    }, 10000);
+    window[cbName] = (data) => {
+      clearTimeout(timeout);
+      delete window[cbName];
+      script.remove();
+      resolve(data);
     };
-    reader.readAsText(file);
-  };
-  input.click();
+    script.src = url + '&callback=' + cbName;
+    script.onerror = () => {
+      clearTimeout(timeout);
+      delete window[cbName];
+      script.remove();
+      reject(new Error('No se pudo conectar con el script'));
+    };
+    document.head.appendChild(script);
+  });
+}
+
+async function cloudSave(order) {
+  // Strip photo from cloud save to avoid URL length limits — photos stay local only
+  const o = Object.assign({}, order);
+  if(o.photo && o.photo.length > 200) o.photo = '';
+  return cloudCall({ action: 'saveOrder', order: o });
+}
+
+async function cloudDelete(id) {
+  return cloudCall({ action: 'deleteOrder', id });
+}
+
+// ── SYNC MODAL ───────────────────────────────────────────────
+function openSyncModal() {
+  document.getElementById('script-url-input').value = scriptUrl;
+  document.getElementById('sync-test-result').style.display = 'none';
+  document.getElementById('sync-progress').style.display = 'none';
+  openModal('sync-modal');
+}
+
+function saveScriptUrl() {
+  const url = document.getElementById('script-url-input').value.trim();
+  if(!url) { showToast('Pega la URL del script'); return; }
+  scriptUrl = url;
+  localStorage.setItem(KEYS.scriptUrl, url);
+  setSyncStatus('URL guardada', true);
+  showToast('URL guardada ✓');
+}
+
+async function testConnection() {
+  const url = document.getElementById('script-url-input').value.trim();
+  if(!url) { showToast('Primero pega la URL'); return; }
+  const el = document.getElementById('sync-test-result');
+  el.style.display = 'block';
+  el.textContent = 'Probando conexión…';
+  el.style.color = 'var(--chocolate-mid)';
+  try {
+    const res = await fetch(url + '?action=ping');
+    const text = await res.text();
+    let data;
+    try { data = JSON.parse(text); } catch(e) { throw new Error('Respuesta no es JSON. Verifica que el script esté bien desplegado.'); }
+    if(data.status) {
+      el.textContent = '✓ Conexión exitosa';
+      el.style.color = '#3a7a3e';
+    } else if(data.error) {
+      el.textContent = '⚠ Script respondió con error: ' + data.error;
+      el.style.color = 'var(--caramel)';
+    } else {
+      el.textContent = '⚠ Respuesta inesperada: ' + text.slice(0,80);
+      el.style.color = 'var(--caramel)';
+    }
+  } catch(e) {
+    el.textContent = '✗ ' + e.message;
+    el.style.color = '#c0392b';
+  }
+}
+
+async function syncDown() {
+  if(!scriptUrl) { showToast('Configura la URL primero'); return; }
+  const prog = document.getElementById('sync-progress');
+  prog.style.display = 'block'; prog.textContent = 'Descargando pedidos…';
+  try {
+    const data = await cloudCall({ action: 'getOrders' });
+    if(data.error) throw new Error(data.error);
+    orders = data.orders || [];
+    saveAll();
+    prog.textContent = '✓ ' + orders.length + ' pedidos descargados';
+    setSyncStatus('Sincronizado ✓', true);
+    renderWeek(); renderPedidos(); renderClientes(); updateHeaderCount();
+    showToast('Pedidos actualizados ✓');
+  } catch(e) {
+    prog.textContent = '✗ Error: ' + e.message;
+    setSyncStatus('Error de sync', false);
+  }
+}
+
+async function syncUp() {
+  if(!scriptUrl) { showToast('Configura la URL primero'); return; }
+  const prog = document.getElementById('sync-progress');
+  prog.style.display = 'block'; prog.textContent = 'Subiendo ' + orders.length + ' pedidos…';
+  try {
+    for(const order of orders) {
+      await cloudSave(order);
+    }
+    prog.textContent = '✓ ' + orders.length + ' pedidos subidos a la nube';
+    setSyncStatus('Sincronizado ✓', true);
+    showToast('Pedidos subidos ✓');
+  } catch(e) {
+    prog.textContent = '✗ Error: ' + e.message;
+  }
 }
 
 // ── TABS ────────────────────────────────────────────────────
@@ -756,27 +892,43 @@ function renderPrintArea() {
     return;
   }
 
-  let html = `<div class="print-page-header no-print" style="margin-bottom:10px;display:flex;justify-content:space-between;align-items:center">
-    <span style="font-family:var(--font-display);font-size:16px;color:var(--chocolate)">De Un Bocado — ${filtered.length} pedido${filtered.length!==1?'s':''}</span>
+  let html = `<div class="print-page-header no-print" style="margin-bottom:12px;display:flex;justify-content:space-between;align-items:center">
+    <span style="font-family:var(--font-display);font-size:16px;color:var(--chocolate)">🎂 De Un Bocado — ${filtered.length} pedido${filtered.length!==1?'s':''}</span>
     <span style="font-size:12px;color:#888">${from?fmtDate(from):''} ${to&&to!==from?'→ '+fmtDate(to):''}</span>
   </div>
-  <div id="print-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:8px">`;
+  <div id="print-grid" style="display:grid;grid-template-columns:1fr;gap:0">`;
 
   filtered.forEach((o,i) => {
     const debt = Math.max(0,(parseFloat(o.price)||0)-(parseFloat(o.paid)||0));
-    const debtStr = debt > 0 ? `<span style="color:#c0392b;font-weight:600">Debe S/${debt.toFixed(2)}</span>` : `<span style="color:#2a7a2e;font-weight:600">PAGADO</span>`;
+    const debtStr = debt > 0
+      ? `<span style="color:#c0392b;font-weight:700;font-size:20px">⚠ Debe S/${debt.toFixed(2)}</span>`
+      : `<span style="color:#2a7a2e;font-weight:700;font-size:20px">✓ PAGADO</span>`;
+    const producto = [o.type,o.flavor,o.size].filter(Boolean).join(' · ') || '—';
     html += `<div class="print-order-card" style="break-inside:avoid">
-      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:5px">
-        <strong style="font-size:14px;font-family:Georgia,serif">${o.client}</strong>
-        <span style="font-size:11px;color:#666;text-align:right">${o.date?fmtDate(o.date):''}<br>${o.time||''}</span>
+      <!-- HEADER: cliente + fecha/hora -->
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;border-bottom:1.5px solid #ddd;padding-bottom:8px;margin-bottom:10px">
+        <div>
+          <div style="font-size:28px;font-weight:700;font-family:Georgia,serif;line-height:1.1;color:#1a0a00">${o.client}</div>
+          ${o.phone?`<div style="font-size:17px;color:#555;margin-top:3px">📞 ${o.phone}</div>`:''}
+        </div>
+        <div style="text-align:right">
+          <div style="font-size:22px;font-weight:700;color:#333">${o.date?fmtDate(o.date):''}</div>
+          <div style="font-size:20px;font-weight:600;color:#c8823a">${o.time||''}</div>
+        </div>
       </div>
-      <div class="prow"><span class="plabel">Tel:</span><span>${o.phone||'—'}</span></div>
-      <div class="prow"><span class="plabel">Lugar:</span><span>${o.place||'—'}</span></div>
-      <div class="prow"><span class="plabel">Producto:</span><span>${[o.type,o.flavor,o.size].filter(Boolean).join(' · ')||'—'}</span></div>
-      ${o.desc?`<div class="prow"><span class="plabel">Diseño:</span><span>${o.desc}</span></div>`:''}
-      ${o.notes?`<div class="prow"><span class="plabel">Notas:</span><span>${o.notes}</span></div>`:''}
-      <div class="prow" style="margin-top:4px"><span class="plabel">S/${parseFloat(o.price||0).toFixed(2)}</span>${debtStr}</div>
-      ${o.photo?`<img src="${o.photo}" style="max-height:70px;max-width:100%;margin-top:5px;border-radius:4px;object-fit:cover">`:``}
+      <!-- BODY: datos del pedido -->
+      <div style="flex:1;display:flex;flex-direction:column;gap:7px">
+        <div class="prow"><span class="plabel">Lugar:</span><span style="font-size:17px">${o.place||'—'}</span></div>
+        <div class="prow"><span class="plabel">Producto:</span><span style="font-size:18px;font-weight:600">${producto}</span></div>
+        ${o.desc?`<div class="prow"><span class="plabel">Diseño:</span><span style="font-size:16px">${o.desc}</span></div>`:''}
+        ${o.notes?`<div class="prow"><span class="plabel">Notas:</span><span style="font-size:16px;color:#7a4a1a">${o.notes}</span></div>`:''}
+      </div>
+      <!-- FOOTER: precio -->
+      <div style="border-top:1.5px solid #ddd;margin-top:10px;padding-top:8px;display:flex;justify-content:space-between;align-items:center">
+        <span style="font-size:22px;font-weight:700;color:#333">S/ ${parseFloat(o.price||0).toFixed(2)}</span>
+        ${debtStr}
+        ${o.photo?`<img src="${o.photo}" style="height:55px;width:55px;border-radius:4px;object-fit:cover;margin-left:8px">`:``}
+      </div>
     </div>`;
   });
 
@@ -887,7 +1039,7 @@ function saveOrder() {
     orders.unshift(order);
   }
 
-  saveAll();
+  saveAllAndSync(order);
   closeModal('order-modal');
   showToast(editingOrderId ? 'Pedido actualizado ✓' : 'Pedido guardado ✓');
 
@@ -902,6 +1054,7 @@ function deleteOrder() {
   const delId = editingOrderId;
   orders = orders.filter(o => o.id !== delId);
   saveAll();
+  if(scriptUrl) { cloudDelete(delId).catch(()=>{}); }
   closeModal('order-modal');
   showToast('Pedido eliminado');
   renderWeek();
@@ -974,28 +1127,6 @@ function updateHeaderCount() {
 
 
 // ── IA PARSE ─────────────────────────────────────────────────
-const API_KEY_STORAGE = 'dub_api_key';
-
-function saveApiKey() {
-  const key = document.getElementById('ia-api-key').value.trim();
-  if(!key || !key.startsWith('sk-')) { showToast('La key debe empezar con sk-'); return; }
-  localStorage.setItem(API_KEY_STORAGE, key);
-  showApiKeyStatus(true);
-  showToast('API Key guardada ✓');
-}
-
-function showApiKeyStatus(saved) {
-  const keySection = document.getElementById('ia-key-section');
-  const keyOk = document.getElementById('ia-key-ok');
-  if(saved) {
-    keySection.style.display = 'none';
-    keyOk.style.display = 'block';
-  } else {
-    keySection.style.display = 'block';
-    keyOk.style.display = 'none';
-  }
-}
-
 function openIAModal() {
   document.getElementById('ia-input').value = '';
   document.getElementById('ia-result').style.display = 'none';
@@ -1003,19 +1134,12 @@ function openIAModal() {
   document.getElementById('ia-btn').textContent = 'Analizar mensaje';
   document.getElementById('ia-btn').disabled = false;
   iaResult = null;
-  // Show key section if not saved
-  const savedKey = localStorage.getItem(API_KEY_STORAGE) || '';
-  document.getElementById('ia-api-key').value = savedKey;
-  showApiKeyStatus(!!savedKey);
   openModal('ia-modal');
 }
 
 async function parseWithIA() {
   const text = document.getElementById('ia-input').value.trim();
   if(!text) { showToast('Pega un mensaje primero'); return; }
-
-  const apiKey = localStorage.getItem(API_KEY_STORAGE) || '';
-  if(!apiKey) { showToast('Primero guarda tu API Key'); showApiKeyStatus(false); return; }
 
   const btn = document.getElementById('ia-btn');
   btn.textContent = 'Analizando…'; btn.disabled = true;
@@ -1044,23 +1168,13 @@ ${text}`;
   try {
     const res = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': apiKey,
-        'anthropic-version': '2023-06-01',
-        'anthropic-dangerous-direct-browser-access': 'true'
-      },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        model: 'claude-haiku-4-5-20251001',
+        model: 'claude-sonnet-4-20250514',
         max_tokens: 500,
         messages: [{ role: 'user', content: prompt }]
       })
     });
-    if(!res.ok) {
-      const err = await res.json().catch(() => ({}));
-      if(res.status === 401) throw new Error('API Key inválida. Verifica que sea correcta.');
-      throw new Error(err.error?.message || 'Error ' + res.status);
-    }
     const data = await res.json();
     const raw = data.content?.[0]?.text || '';
     const clean = raw.replace(/```json|```/g,'').trim();
@@ -1129,6 +1243,10 @@ document.getElementById('print-to').value = tomorrowStr;
 // Init
 renderWeek();
 updateHeaderCount();
+if(scriptUrl) {
+  setSyncStatus('Sincronizando…', true);
+  syncDown().then(() => {}).catch(() => setSyncStatus('Sin conexión', false));
+}
 </script>
 </body>
 </html>
